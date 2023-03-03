@@ -1,4 +1,4 @@
-# Package RnBeads.mm10 (Ensembl v102)
+# Create new package RnBeads.mm10 (Ensembl v102)
 
 **Description:** Automatically generated RnBeads annotation package for the mouse assembly mm10 using Ensembl annotation v102.
 

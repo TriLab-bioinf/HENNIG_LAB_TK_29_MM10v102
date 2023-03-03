@@ -1,0 +1,16 @@
+.DS_Store
+.RData
+.Rhistory
+JAKUB_HiC/
+RnBeads.mm10_orig/
+RnBeads.mm9/
+RnBeads/
+RnBeadsAnnotationCreator/
+RnBeadsAnnotationCreator_0.99.0.tar.gz
+RnBeads_2.16.0.tar.gz
+TK_29/
+TK_29:bisulfite/
+test.Rmd
+test.nb.html
+RnBeads.mm10/
+RnBeads.mm10_1.6.0.tar.gz

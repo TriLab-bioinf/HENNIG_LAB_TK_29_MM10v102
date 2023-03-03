@@ -22,3 +22,7 @@ R CMD INSTALL RnBeads.mm10_1.6.0.tar.gz
 
 ```
 
+To rerun the methylation analysis use the following R notebook:
+```
+run_RnBeads.Rmd
+``` 

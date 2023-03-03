@@ -1,0 +1,103 @@
+---
+title: "RnBeads pipeline"
+output: html_notebook
+---
+
+## Load libraries
+```{r, warning=FALSE,message=FALSE}
+library(RnBeads)
+library(yaml)
+```
+
+## Set input files
+```{r}
+data.dir <- "~/Documents/PROJECTS/HENNIGHAUSEN_LAB/TK_29/data"
+report.dir <- "~/Documents/PROJECTS/HENNIGHAUSEN_LAB/TK_29/RnBeads/Report"
+rnb.initialize.reports(report.dir)
+data.source <- c(data.dir,"~/Documents/PROJECTS/HENNIGHAUSEN_LAB/TK_29/data/metadata_5sample_new_header.csv")
+black.list <- "~/Documents/PROJECTS/HENNIGHAUSEN_LAB/TK_29/data/methylation_sites.blacklisted.csv"
+
+```
+
+# Set parameters
+```{r set parameters}
+# Set RnBeads parameters
+rnb.options(filtering.sex.chromosomes.removal=TRUE, 
+            identifiers.column="sampleID",
+            assembly = 'mm10',
+            max.group.count = 2,
+            import.sex.prediction = FALSE,
+            import.bed.style = "bismarkCov",
+            qc.snp.distances = FALSE,
+            filtering.blacklist = black.list,
+            filtering.missing.value.quantile = 0.6,
+            filtering.coverage.threshold = 5,
+            filtering.low.coverage.masking = TRUE,
+            enforce.memory.management = TRUE,
+            logging.disk = TRUE,
+            exploratory = FALSE,
+            region.types = NULL,
+            analyze.sites = TRUE # sites must be TRUE otherwise it calculates region stats as site stats
+            )
+
+
+# Set number of cores
+num.cores <- 30
+parallel.setup(num.cores)
+parallel.isEnabled()
+
+
+# Save parameters
+a = rnb.options()
+write_yaml(x = a, file = file.path(data.dir, 'rnb_options.yaml'), line.sep = "\n", indent = 2, precision = 2)
+```
+
+# Run analysis step-by-step for each region individually, otherwise RnBeads crushes at the Diff Methylation table construction
+```{r}
+# Select what processes to run
+rnbeads_steps = list(import=TRUE, qc=FALSE, preprocess=TRUE, exploratory=FALSE, diffmeth=TRUE)
+
+# Define the regions to run (they will be run one-by-one)
+my_regions <- c("promoters","genes","cpgislands","tiling")
+for (my_region in my_regions){
+  logger.start(fname = paste0(my_region,"_RnBeads.log"))
+  
+  # Set region to run
+  rnb.options(region.types=my_region)
+  print(paste("Runing region",my_region))
+  
+  # Set report directory specific for current run
+  report.dir <- paste0("~/Documents/PROJECTS/HENNIGHAUSEN_LAB/TK_29/RnBeads/Report_", my_region)
+  
+  # Write.table(x = a, file = rnb_options, sep = ",", col.names = FALSE)
+  my_options = rnb.options()
+  write_yaml(x = my_options, file = file.path(data.dir, paste0(my_region, '_rnb_options.yaml')), line.sep = "\n", indent = 2, precision = 2)
+  
+  # Import data
+  if (rnbeads_steps$import){
+    result <- rnb.run.import(data.source=data.source, data.type="bs.bed.dir", dir.reports=report.dir)
+  }
+  
+  # QC data
+  if (rnbeads_steps$qc){
+    rnb.run.qc(result$rnb.set, report.dir)
+  }
+  
+  # Preprocess data
+  if (rnbeads_steps$preprocess){
+    result <- rnb.run.preprocessing(result$rnb.set, dir.reports=report.dir)
+    rnb.set <- result$rnb.set
+  }
+  
+  # Explore data
+  if (rnbeads_steps$exploratory){
+    rnb.run.exploratory(rnb.set, report.dir)
+  }
+  
+  # Calculate differential methylation
+  if (rnbeads_steps$diffmeth){
+    rnb.run.differential(rnb.set, report.dir)
+  }
+}
+```
+

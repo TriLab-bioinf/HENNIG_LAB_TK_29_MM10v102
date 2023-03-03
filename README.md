@@ -15,5 +15,10 @@ Next, run the following command to create the RnBeads.mm10 package with the Ense
 Rscript create_mm10_RnBeads_annotation.R --assembly mm10 --version 102 --path `pwd` 
 ``` 
 
+The command above should create in the current directory the folder RnBeads.mm10. To finalize the creeation of the new RnBeads.mm10 package and install it in R run the following commands:
+```
+R CMD build RnBeads.mm10
+R CMD INSTALL RnBeads.mm10_1.6.0.tar.gz
 
+```
 
